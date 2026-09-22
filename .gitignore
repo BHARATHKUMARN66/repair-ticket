@@ -1,0 +1,89 @@
+# ===================================================================
+# Root .gitignore for OmniFix Smart Repair Ticket Management System
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Operating System & Editor Artifacts
+# -------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# JetBrains / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# General Editor Backups & Swaps
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# -------------------------------------------------------------------
+# Backend Artifacts (Java / Spring Boot / Maven)
+# -------------------------------------------------------------------
+**/target/
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
+repair-ticket-backend/HELP.md
+
+# -------------------------------------------------------------------
+# Frontend Artifacts (Node.js / React / Vite)
+# -------------------------------------------------------------------
+**/node_modules/
+node_modules/
+**/dist/
+dist/
+**/dist-ssr/
+dist-ssr/
+*.local
+
+# -------------------------------------------------------------------
+# Environment & Secrets (Never commit credentials)
+# -------------------------------------------------------------------
+*.env
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+*.key
+*.pem
+*.pfx
+
+# -------------------------------------------------------------------
+# Logs & Diagnostic Files
+# -------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -------------------------------------------------------------------
+# Local Development Scratch & Test Scripts
+# -------------------------------------------------------------------
+scratch/
+powershell.bat
+**/powershell.bat
+test_*.ps1
+check_*.ps1
+cleanup_*.sql
