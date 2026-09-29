@@ -1,0 +1,56 @@
+# ===================================================================
+# Render Infrastructure Blueprint (render.yaml)
+# Deploy PostgreSQL, Spring Boot Backend, and React Frontend in 1 Click
+# ===================================================================
+
+databases:
+  - name: repair-ticket-postgres
+    databaseName: repair_ticket_db
+    user: postgres
+    plan: free
+    region: oregon
+
+services:
+  # -----------------------------------------------------------------
+  # 1. OmniFix Spring Boot Backend Service (Docker)
+  # -----------------------------------------------------------------
+  - type: web
+    name: repair-ticket-backend
+    runtime: docker
+    rootDir: repair-ticket-backend
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8082
+      - key: DB_URL
+        fromDatabase:
+          name: repair-ticket-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: "86400000"
+      - key: ALLOWED_ORIGINS
+        value: "https://repair-ticket-frontend.onrender.com,http://localhost:5173"
+
+  # -----------------------------------------------------------------
+  # 2. OmniFix React Vite Frontend (Static Site)
+  # -----------------------------------------------------------------
+  - type: web
+    name: repair-ticket-frontend
+    runtime: static
+    rootDir: repair-ticket-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: repair-ticket-backend
+          envVarKey: RENDER_EXTERNAL_URL

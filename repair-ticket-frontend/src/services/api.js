@@ -4,8 +4,12 @@
  * Centralized HTTP client managing JWT token injection, JSON parsing,
  * query parameter formatting, and error extraction.
  */
-
-const API_BASE_URL = '/api';
+// In production on Render, VITE_API_URL points to the backend web service (e.g., https://my-backend.onrender.com/api)
+// In local development, defaults to '/api' which Vite proxies to http://localhost:8082
+const envApiUrl = import.meta.env.VITE_API_URL;
+const API_BASE_URL = envApiUrl
+  ? (envApiUrl.endsWith('/api') ? envApiUrl : `${envApiUrl.replace(/\/+$/, '')}/api`)
+  : '/api';
 
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem('omni_token');

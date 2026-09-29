@@ -17,10 +17,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,7 +33,7 @@ import java.util.List;
  * Enforces stateless JWT authentication and method-level Role-Based Access Control:
  * - Disables CSRF (REST APIs are stateless)
  * - SessionCreationPolicy.STATELESS (no HTTP session is created or stored)
- * - CORS enabled for Vite frontend (http://localhost:5173)
+ * - CORS enabled for Vite frontend (http://localhost:5173) and production hosts
  * - JwtAuthenticationEntryPoint for JSON 401 Unauthorized handling
  * - CustomAccessDeniedHandler for JSON 403 Forbidden handling
  * - @EnableMethodSecurity for @PreAuthorize annotations across Controllers
@@ -41,6 +43,9 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173}")
+    private String allowedOrigins;
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
@@ -99,8 +104,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow Vite React frontend development server and standard React ports
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"));
+
+        List<String> patterns = new ArrayList<>(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList());
+
+        // Automatically permit Render domains and local development origins
+        if (!patterns.contains("https://*.onrender.com")) {
+            patterns.add("https://*.onrender.com");
+        }
+
+        configuration.setAllowedOriginPatterns(patterns);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
         configuration.setExposedHeaders(List.of("Authorization"));
