@@ -1,396 +1,866 @@
-# OmniFix | Smart Hardware Repair & Service Hub
+OMNIFIX
+Smart Hardware Repair & Service Hub
+Full-Stack Hardware Repair Ticket and Workshop Operations Platform
 
-![Production Status](https://img.shields.io/badge/Production-Live%20on%20Render-success?logo=render)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen?logo=springboot)
-![React](https://img.shields.io/badge/React-19.0-61dafb?logo=react)
-![Vite](https://img.shields.io/badge/Vite-8.3-646cff?logo=vite)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
-![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ed?logo=docker)
-![Security](https://img.shields.io/badge/Security-Stateless%20JWT%20(HMAC--SHA256)-blue?logo=jsonwebtokens)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+Technology Stack
 
-**OmniFix** is a production-grade, full-stack hardware repair ticket and workshop operations platform. Designed for hardware service centers, repair depots, and technical service hubs, OmniFix connects clients, bench specialists, and operations managers through an end-to-end service lifecycle:
+Backend: Spring Boot 4.1.1
+Frontend: React 19.0
+Build Tool: Vite 8.3
+Database: PostgreSQL 16
+Containerization: Docker
+Security: Stateless JWT Authentication using HMAC-SHA256
+Cloud Platform: Render
+License: MIT
 
-$$\textbf{Customer Intake} \longrightarrow \textbf{Hardware Asset} \longrightarrow \textbf{Diagnostic Request} \longrightarrow \textbf{Bench Allocation} \longrightarrow \textbf{Repair} \longrightarrow \textbf{QA Verification} \longrightarrow \textbf{Pickup / Handover}$$
+Production Status: Live on Render
 
----
+1. Project Overview
 
-## Live Deployments & Cloud Infrastructure
+OmniFix is a production-grade, full-stack hardware repair ticket and workshop operations platform designed for hardware service centers, repair depots, and technical service hubs.
 
-The application is deployed live on the **Render Cloud Platform**:
+The platform connects customers, workshop specialists, and operations managers through a complete hardware repair lifecycle.
 
-| Component | Service Type | Live Production URL / Connection |
-| :--- | :--- | :--- |
-| **Frontend Portal** | Render Static Site | [https://repair-ticket-frontend.onrender.com](https://repair-ticket-frontend.onrender.com) |
-| **Backend API** | Render Web Service (Docker) | [https://repair-ticket-backend.onrender.com](https://repair-ticket-backend.onrender.com) |
-| **Database** | Managed PostgreSQL 16 | `postgresql://repair_ticket_db_user:***@dpg-datqe2id0e5s73d51jug-a/repair_ticket_db` |
+Service Lifecycle
 
----
+Customer Intake → Hardware Asset → Diagnostic Request → Bench Allocation → Repair → QA Verification → Pickup / Handover
 
-## Production Verified Credentials
+The system provides separate interfaces for customers, technicians, administrators, and public ticket tracking. It manages the complete repair process from ticket creation through assignment, diagnosis, repair, quality verification, and closure.
 
-The system initializes with seeded accounts for each operational tier:
+2. Live Deployment & Cloud Infrastructure
 
-| Role / Portal | Portal URL | Username | Password | Access Capabilities |
-| :--- | :--- | :--- | :--- | :--- |
-| **Master Administrator** | [`/admin`](https://repair-ticket-frontend.onrender.com/admin) | `admin` | `Admin@OmniFix2026!` | • Command Center KPIs & Attention Required triage<br>• Specialist roster, workload & capacity management<br>• Manual assignment, reassignment & status overrides<br>• Global search (Cmd/Ctrl + K) & customer CRM |
-| **Workshop Specialist** | [`/technician`](https://repair-ticket-frontend.onrender.com/technician) | `tech_marcus_vance` | `Tech@OmniFix2026!` | • Claim unassigned intake tickets from pool<br>• Real-time bench diagnostic progression<br>• Append immutable diagnostic timeline updates<br>• Complete repair & pass to QA check |
-| **Client Customer** | [`/`](https://repair-ticket-frontend.onrender.com/) | `alexmercer` | `Client@OmniFix2026!` | • Self-service client repair dashboard<br>• 4-step hardware intake booking wizard<br>• Fleet hardware management (laptops, phones, desktops)<br>• Ticket cancellation before bench allocation |
-| **Public Live Tracker** | [`/track`](https://repair-ticket-frontend.onrender.com/track) | *(Public)* | *(No auth)* | • Zero-login real-time lookup by Ticket Code<br>• 6-milestone visual stepper & diagnostic history<br>• Privacy-masked customer & hardware serial details |
+The OmniFix application is deployed on the Render Cloud Platform.
 
-> [!NOTE]
-> New customers can also self-register 24/7 directly from the **Create Account** tab on the Customer Portal ([https://repair-ticket-frontend.onrender.com/](https://repair-ticket-frontend.onrender.com/)).
+Component	Service Type	Production URL / Connection
+Frontend Portal	Render Static Site	https://repair-ticket-frontend.onrender.com
+Backend API	Render Web Service using Docker	https://repair-ticket-backend.onrender.com
+Database	Managed PostgreSQL 16	Production PostgreSQL database
+3. Application Portals
 
----
+OmniFix provides different portals based on the user's role.
 
-## System Architecture
+3.1 Master Administrator
 
-```mermaid
-flowchart TD
-    subgraph ClientLayer ["Client Presentation Layer (Render Static Site)"]
-        UI_Cust["Customer Portal\n(/)"]
-        UI_Tech["Technician Workbench\n(/technician)"]
-        UI_Admin["Operations Command Center\n(/admin)"]
-        UI_Track["Public Live Tracker\n(/track)"]
-    end
+Portal: /admin
 
-    subgraph APILayer ["Backend Application Layer (Render Docker Service)"]
-        GW["REST API Gateway & CORS Filter\nhttps://repair-ticket-backend.onrender.com"]
-        SEC["Spring Security Filter Chain\n(Stateless JWT HMAC-SHA256)"]
-        
-        subgraph Controllers ["Spring REST Controllers (/api/*)"]
-            C_Auth["AuthController"]
-            C_Ticket["RepairTicketController"]
-            C_Cust["CustomerController"]
-            C_Dev["DeviceController"]
-            C_Tech["TechnicianController"]
-            C_Upd["RepairUpdateController"]
-        end
+Main Capabilities
+Command Center KPIs
+Attention-required ticket triage
+Specialist roster management
+Technician workload and capacity monitoring
+Manual ticket assignment
+Ticket reassignment
+Status overrides
+Global search using Ctrl + K / Cmd + K
+Customer CRM functionality
+3.2 Workshop Specialist
 
-        subgraph CoreService ["Business Domain & FSM Engine"]
-            S_Ticket["RepairTicketService (FSM Validation)"]
-            S_Tech["TechnicianService (Capacity Tracking)"]
-            S_Auth["AuthService (JWT Minting)"]
-        end
+Portal: /technician
 
-        HIKARI["HikariCP Connection Pool\n(Min: 2, Max: 10)"]
-    end
+Main Capabilities
+Claim unassigned intake tickets
+View assigned repair tickets
+Monitor active bench workload
+Perform diagnostic operations
+Add diagnostic timeline updates
+Complete repairs
+Pass completed repairs to QA verification
+3.3 Client Customer
 
-    subgraph DataLayer ["Cloud Persistence Layer (Render PostgreSQL 16)"]
-        DB[("Database: repair_ticket_db\nTables: users, technicians, customers,\ndevices, repair_tickets, repair_updates")]
-    end
+Portal: /
 
-    ClientLayer -->|HTTPS / JSON + Bearer JWT| GW
-    GW --> SEC
-    SEC --> Controllers
-    Controllers --> CoreService
-    CoreService --> HIKARI
-    HIKARI -->|SSL JDBC / TCP 5432| DB
-```
+Main Capabilities
+Self-service repair dashboard
+Four-step hardware intake booking
+Hardware fleet management
+Laptop, smartphone, desktop, and other device registration
+Ticket tracking
+Ticket cancellation before bench allocation
 
----
+New customers can also create an account directly through the Create Account option on the customer portal.
 
-## Repair Lifecycle Finite State Machine (FSM)
+3.4 Public Live Tracker
 
-The lifecycle of each repair order is strictly managed by state validation logic:
+Portal: /track
 
-```mermaid
-stateDiagram-v2
-    [*] --> OPEN: Customer / Admin Intake
-    OPEN --> ASSIGNED: Tech Assigned / Claimed
-    OPEN --> CANCELLED: Customer / Admin Cancel
-    ASSIGNED --> IN_PROGRESS: Bench Diagnostic Started
-    ASSIGNED --> OPEN: Unassigned / Reallocated
-    IN_PROGRESS --> REPAIR_COMPLETED: Bench Repair Finished
-    IN_PROGRESS --> CANCELLED: Cancelled with Justification
-    REPAIR_COMPLETED --> CLOSED: QA Verified & Picked Up
-    CANCELLED --> [*]
-    CLOSED --> [*]
-```
+Main Capabilities
+No-login ticket tracking
+Ticket-code based lookup
+Six-milestone progress tracker
+Diagnostic history
+Privacy-masked customer information
+Privacy-masked hardware serial numbers
+4. System Architecture
 
-| Lifecycle Status | Description | Permitted Roles | Next Allowed States |
-| :--- | :--- | :--- | :--- |
-| `OPEN` | Ticket logged; pending triage and specialist assignment | Customer, Admin | `ASSIGNED`, `CANCELLED` |
-| `ASSIGNED` | Assigned to a specific bench technician; waiting for bench opening | Admin, Technician | `IN_PROGRESS`, `OPEN`, `CANCELLED` |
-| `IN_PROGRESS` | Hardware is actively on the bench under diagnostic/soldering work | Technician, Admin | `REPAIR_COMPLETED`, `CANCELLED` |
-| `REPAIR_COMPLETED`| Technical work finished; pending QA testing and customer collection | Technician, Admin | `CLOSED` |
-| `CLOSED` | Device verified, handed back to customer; ticket resolved | Admin | *(Terminal State)* |
-| `CANCELLED` | Order terminated prior to repair completion with recorded reason | Customer, Admin | *(Terminal State)* |
+OmniFix follows a layered full-stack architecture consisting of:
 
----
+Presentation Layer
 
-## Core Features by Portal
+The frontend is implemented using React 19 and Vite and provides:
 
-### 1. Operations & Admin Desk (`/admin`)
-- **Operations Command Center**: Live metrics displaying *Total in Queue*, *Pending Intake*, *Active On Bench*, and *Ready For Pickup*.
-- **Attention Required Triage**: Automatically flags bottlenecks:
-  - *Needs Assignment*: Unassigned tickets sitting in queue.
-  - *SLA / Overdue Alerts*: Repairs exceeding estimated completion dates.
-  - *Active on Bench*: Hardware currently disassembled.
-  - *Ready for Pickup*: Units awaiting customer retrieval.
-- **Specialist Capacity Roster**: Visual utilization bars indicating bench loads, assigned count, and availability per technician.
-- **Dual View Modes**: Switch between high-density **9-Column Table View** and interactive **5-Stage Kanban Board**.
-- **Deep 5-Tab Inspection Drawer & Modal**:
-  - *Overview*: Customer contact, device specs, priority level, and SLA timeline.
-  - *Diagnostic Feed*: Timestamped technician service notes.
-  - *FSM State Controller*: Validated state progression buttons.
-  - *Hardware Specs*: Serial number, brand, model, and category.
-  - *Audit History*: Complete immutable log of state transitions.
+Customer Portal
+Technician Workbench
+Operations Command Center
+Public Live Tracker
+Application Layer
 
-### 2. Workshop Specialist Bench (`/technician`)
-- **Claim Pool**: View all unassigned hardware units and claim them directly to your personal bench.
-- **Active Bench Workspace**: Dedicated view of hardware currently under repair.
-- **One-Click Progression**: Direct actions for `Start Bench Repair`, `Complete Repair`, and `Pause / Revert`.
-- **Diagnostic Note Logger**: Append technical notes (micro-soldering results, replaced capacitors, stress test results).
+The backend is implemented using Spring Boot and exposes REST APIs.
 
-### 3. Customer Self-Service Portal (`/`)
-- **Active Repair Cards & Table**: Real-time status cards with SLA turnaround estimates, priority badges, and direct links to the public tracker.
-- **4-Step Intake Booking Wizard**:
-  1. *Select or Register Hardware*: Pick from existing registered assets or register a new device.
-  2. *Symptom Diagnostics*: Contextual symptom selector (No Power, Cracked Screen, Liquid Damage, Thermal Throttling, etc.).
-  3. *Turnaround SLA*: Choose between *Standard (5-7 days)*, *Expedited (2-3 days)*, *Urgent (24h)*, or *Emergency Same-Day*.
-  4. *Confirmation Receipt*: Instant pre-flight intake receipt with ticket number and printable summary.
-- **Hardware Fleet Manager**: Register and track multiple laptops, smartphones, tablets, and desktop workstations.
+Major backend components include:
 
-### 4. Public Live Service Tracker (`/track`)
-- **Zero-Login Lookup**: Customers enter their Ticket Number (`TICK-YYYYMMDD-XXXXXXXX`) to see live progress.
-- **6-Milestone Linear Progress Stepper**: Intake $\rightarrow$ Triage $\rightarrow$ Assigned $\rightarrow$ In Repair $\rightarrow$ Quality Testing $\rightarrow$ Ready for Pickup.
-- **Privacy Masking**: Automatically redacts private customer information (e.g., `A*** M*****`) and serial numbers (`C02M3***`).
+REST API Gateway
+CORS Filter
+Spring Security Filter Chain
+Authentication Controller
+Repair Ticket Controller
+Customer Controller
+Device Controller
+Technician Controller
+Repair Update Controller
+Business Service Layer
+FSM Validation
+Technician Capacity Tracking
+JWT Authentication Service
+HikariCP Connection Pool
+Persistence Layer
 
----
+The application uses PostgreSQL 16 as its relational database.
 
-## REST API Specification
+Main tables include:
 
-### 1. Authentication Endpoints (`/api/auth`)
-| Method | Endpoint | Auth | Request Body | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/login` | None | `{ "username": "...", "password": "..." }` | Authenticates user; returns JWT token, roles, and ID |
-| `POST` | `/api/auth/register` | None | `{ "username": "...", "password": "...", "fullName": "..." }` | Self-registration for `ROLE_USER` clients |
+users
+customers
+technicians
+devices
+repair_tickets
+repair_updates
 
-### 2. Repair Tickets (`/api/tickets`)
-| Method | Endpoint | Auth | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/tickets` | Admin, Tech | Paginated ticket queue with search, status, priority, and date filters |
-| `POST` | `/api/tickets` | Authenticated | Create a new repair ticket |
-| `GET` | `/api/tickets/{id}` | Authenticated | Retrieve full ticket detail by numeric ID |
-| `GET` | `/api/tickets/number/{num}` | Public | Zero-auth public tracking by ticket number |
-| `PATCH` | `/api/tickets/{id}/status` | Admin, Tech | Advance FSM lifecycle status with optional transition note |
-| `POST` | `/api/tickets/{id}/assign` | Admin, Tech | Assign or claim technician to ticket |
-| `POST` | `/api/tickets/{id}/unassign` | Admin | Unassign technician; reverts ticket to `OPEN` |
-| `POST` | `/api/tickets/{id}/cancel` | Admin, User | Cancel ticket with mandatory cancellation reason |
-| `GET` | `/api/tickets/customer/{id}` | Authenticated | Fetch all tickets associated with a customer ID |
-| `GET` | `/api/tickets/{id}/updates` | Authenticated | Retrieve diagnostic note timeline for ticket |
-| `GET` | `/api/tickets/number/{num}/updates`| Public | Retrieve public diagnostic timeline |
-| `POST` | `/api/tickets/{id}/updates` | Admin, Tech | Append a new diagnostic progress note |
-| `DELETE`| `/api/tickets/{id}` | Admin | Delete a ticket and cascade associated updates |
+The application communicates with the backend using HTTPS and JSON, with authenticated requests carrying a Bearer JWT.
 
-### 3. Customers & Hardware Assets (`/api/customers`, `/api/devices`)
-| Method | Endpoint | Auth | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/customers` | Admin | List all registered customers with ticket counts |
-| `POST` | `/api/customers` | Authenticated | Create customer record (Name, Phone, Email, Address) |
-| `GET` | `/api/customers/{id}` | Authenticated | Get customer profile details |
-| `GET` | `/api/devices` | Admin | List all registered hardware devices |
-| `POST` | `/api/devices` | Authenticated | Register new device (Brand, Model, Serial, Type) |
-| `GET` | `/api/devices/customer/{id}` | Authenticated | List all devices belonging to a customer |
+5. Repair Lifecycle – Finite State Machine
 
-### 4. Technicians & Workshop Staff (`/api/technicians`)
-| Method | Endpoint | Auth | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/technicians` | Admin, Tech | List all technicians with active workload count |
-| `GET` | `/api/technicians/active` | Admin, Tech | List only active technicians eligible for assignment |
-| `POST` | `/api/technicians` | Admin | Onboard new technician; auto-creates user login account |
-| `PUT` | `/api/technicians/{id}` | Admin | Update technician details, phone, or specialization |
-| `PATCH` | `/api/technicians/{id}/status` | Admin | Toggle technician active/inactive status |
-| `DELETE`| `/api/technicians/{id}` | Admin | Safely decommission technician (validates zero open tickets) |
+The repair process is controlled using a Finite State Machine (FSM).
 
----
+Lifecycle
 
-## Database Architecture
+OPEN → ASSIGNED → IN_PROGRESS → REPAIR_COMPLETED → CLOSED
 
-The relational schema is hosted on PostgreSQL 16:
+Alternative transitions include:
 
-```mermaid
-erDiagram
-    users {
-        bigint id PK
-        varchar username UK
-        varchar password
-        varchar full_name
-        varchar role
-        boolean enabled
-        timestamp created_at
-        timestamp updated_at
-    }
+OPEN → CANCELLED
+ASSIGNED → OPEN
+ASSIGNED → CANCELLED
+IN_PROGRESS → CANCELLED
+Lifecycle States
+Status	Description	Permitted Roles	Next Allowed States
+OPEN	Ticket logged and waiting for triage and assignment	Customer, Admin	ASSIGNED, CANCELLED
+ASSIGNED	Ticket assigned to a technician	Admin, Technician	IN_PROGRESS, OPEN, CANCELLED
+IN_PROGRESS	Device is actively being diagnosed or repaired	Technician, Admin	REPAIR_COMPLETED, CANCELLED
+REPAIR_COMPLETED	Repair finished and awaiting QA/customer collection	Technician, Admin	CLOSED
+CLOSED	Device verified and handed back to customer	Admin	Terminal State
+CANCELLED	Repair order terminated before completion	Customer, Admin	Terminal State
 
-    customers {
-        bigint id PK
-        varchar first_name
-        varchar last_name
-        varchar email UK
-        varchar phone_number
-        varchar address
-        timestamp created_at
-        timestamp updated_at
-    }
+The FSM ensures that invalid state transitions cannot occur during the repair lifecycle.
 
-    devices {
-        bigint id PK
-        varchar brand
-        varchar model
-        varchar serial_number UK
-        varchar device_type
-        bigint customer_id FK
-        timestamp created_at
-        timestamp updated_at
-    }
+6. Core Features
+6.1 Operations & Administration Desk
 
-    technicians {
-        bigint id PK
-        varchar first_name
-        varchar last_name
-        varchar email UK
-        varchar phone_number
-        varchar specialization
-        boolean is_active
-        timestamp created_at
-        timestamp updated_at
-    }
+Portal: /admin
 
-    repair_tickets {
-        bigint id PK
-        varchar ticket_number UK
-        text issue_description
-        varchar priority
-        varchar status
-        date estimated_completion_date
-        bigint customer_id FK
-        bigint device_id FK
-        bigint assigned_technician_id FK
-        timestamp created_at
-        timestamp updated_at
-    }
+Operations Command Center
 
-    repair_updates {
-        bigint id PK
-        bigint repair_ticket_id FK
-        bigint technician_id FK
-        varchar previous_status
-        varchar new_status
-        text notes
-        timestamp created_at
-    }
+The dashboard provides live operational metrics such as:
 
-    customers ||--o{ devices : "owns"
-    customers ||--o{ repair_tickets : "submits"
-    devices ||--o{ repair_tickets : "serviced in"
-    technicians ||--o{ repair_tickets : "assigned to"
-    repair_tickets ||--o{ repair_updates : "history log"
-    technicians ||--o{ repair_updates : "logged by"
-```
+Total in Queue
+Pending Intake
+Active on Bench
+Ready for Pickup
+Attention Required Triage
 
----
+The system identifies operational bottlenecks including:
 
-## Production Cloud Configuration (Render)
+Needs Assignment – tickets waiting for technician assignment
+SLA / Overdue Alerts – repairs exceeding expected completion dates
+Active on Bench – hardware currently undergoing repair
+Ready for Pickup – completed devices awaiting customer collection
+Technician Capacity Management
 
-### Backend Web Service Settings
-- **Service Name**: `repair-ticket-backend`
-- **Environment**: Docker (Multi-stage build with `eclipse-temurin:26-jdk` and `eclipse-temurin:26-jre`)
-- **Port**: Dynamically bound via `${PORT:8082}`
-- **Memory Management**: `-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0` to operate reliably within Render free/starter tiers.
-- **Environment Variables**:
-  ```ini
-  PORT=8082
-  DB_URL=postgresql://repair_ticket_db_user:r6TQjyUXoQYjgAJ8H85cW5G5k4BXoYi3@dpg-datqe2id0e5s73d51jug-a/repair_ticket_db
-  JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  JWT_EXPIRATION_MS=86400000
-  ALLOWED_ORIGINS=https://repair-ticket-frontend.onrender.com,http://localhost:5173
-  ```
+The administrator can view:
 
-### Frontend Static Site Settings
-- **Service Name**: `repair-ticket-frontend`
-- **Build Command**: `npm install && npm run build`
-- **Publish Directory**: `dist`
-- **Environment Variables**:
-  ```ini
-  VITE_API_URL=https://repair-ticket-backend.onrender.com/api
-  ```
-- **SPA Rewrites**:
-  - `/*` $\rightarrow$ `/index.html` (Rewrite, Status 200)
+Technician workload
+Assigned ticket count
+Bench utilization
+Technician availability
+Ticket Views
 
----
+The system provides two major ticket visualization modes:
 
-## Local Development & Setup
+Nine-column Table View
+Five-stage Kanban Board
+Ticket Inspection
 
-### Prerequisites
-- **Java**: JDK 21 or 26
-- **Node.js**: 18.x or higher
-- **PostgreSQL**: Local instance or Docker
+The inspection drawer/modal provides:
 
-### 1. Database
-```bash
+Overview
+
+Customer information
+Device specifications
+Priority
+SLA timeline
+
+Diagnostic Feed
+
+Timestamped technician notes
+
+FSM State Controller
+
+Validated lifecycle transition controls
+
+Hardware Specifications
+
+Serial number
+Brand
+Model
+Device category
+
+Audit History
+
+Complete state-transition history
+7. Workshop Specialist Bench
+
+Portal: /technician
+
+Claim Pool
+
+Technicians can view unassigned repair tickets and claim them directly.
+
+Active Bench Workspace
+
+Displays hardware currently assigned to the technician.
+
+One-Click Progression
+
+Technicians can perform actions such as:
+
+Start Bench Repair
+Complete Repair
+Pause / Revert
+Diagnostic Note Logger
+
+Technicians can record technical information including:
+
+Micro-soldering results
+Replaced components
+Stress-test results
+Diagnostic observations
+8. Customer Self-Service Portal
+
+Portal: /
+
+The customer dashboard provides real-time visibility into repair activities.
+
+Active Repair Dashboard
+
+Customers can view:
+
+Current repair status
+SLA estimates
+Priority indicators
+Public tracker links
+8.1 Four-Step Intake Booking Wizard
+Step 1 – Select or Register Hardware
+
+Customers can either:
+
+Select an existing device
+Register a new device
+Step 2 – Symptom Diagnostics
+
+Customers select the relevant hardware problem, such as:
+
+No Power
+Cracked Screen
+Liquid Damage
+Thermal Throttling
+Other device-specific symptoms
+Step 3 – Turnaround SLA
+
+Customers can select:
+
+Standard – 5–7 days
+Expedited – 2–3 days
+Urgent – 24 hours
+Emergency – Same Day
+Step 4 – Confirmation Receipt
+
+The system generates:
+
+Intake confirmation
+Ticket number
+Printable summary
+9. Hardware Fleet Manager
+
+Customers can register and manage multiple hardware devices, including:
+
+Laptops
+Smartphones
+Tablets
+Desktop Workstations
+
+Each device can be associated with its corresponding repair tickets.
+
+10. Public Live Service Tracker
+
+Portal: /track
+
+The public tracking system allows customers to track repairs without logging into the application.
+
+Ticket Lookup
+
+Customers enter their ticket number in the format:
+
+TICK-YYYYMMDD-XXXXXXXX
+
+Six-Milestone Progress
+
+The system displays:
+
+Intake → Triage → Assigned → In Repair → Quality Testing → Ready for Pickup
+
+Privacy Protection
+
+Sensitive information is automatically masked.
+
+Example:
+
+Customer: A*** M*****
+Serial Number: C02M3***
+
+This allows customers to monitor progress without exposing sensitive personal or hardware information.
+
+11. REST API Specification
+11.1 Authentication APIs
+
+Base URL:
+
+/api/auth
+
+Method	Endpoint	Authentication	Description
+POST	/api/auth/login	None	Authenticates the user and returns JWT, role, and user ID
+POST	/api/auth/register	None	Registers a new customer account
+12. Repair Ticket APIs
+
+Base URL:
+
+/api/tickets
+
+Method	Endpoint	Authentication	Description
+GET	/api/tickets	Admin, Technician	Paginated ticket queue with filters
+POST	/api/tickets	Authenticated	Create a repair ticket
+GET	/api/tickets/{id}	Authenticated	Retrieve ticket details
+GET	/api/tickets/number/{num}	Public	Track ticket using ticket number
+PATCH	/api/tickets/{id}/status	Admin, Technician	Advance FSM status
+POST	/api/tickets/{id}/assign	Admin, Technician	Assign or claim technician
+POST	/api/tickets/{id}/unassign	Admin	Remove technician assignment
+POST	/api/tickets/{id}/cancel	Admin, User	Cancel ticket with reason
+GET	/api/tickets/customer/{id}	Authenticated	Retrieve customer's tickets
+GET	/api/tickets/{id}/updates	Authenticated	Retrieve diagnostic timeline
+GET	/api/tickets/number/{num}/updates	Public	Retrieve public diagnostic timeline
+POST	/api/tickets/{id}/updates	Admin, Technician	Add diagnostic update
+DELETE	/api/tickets/{id}	Admin	Delete ticket and related updates
+13. Customer & Hardware APIs
+Customer APIs
+
+Base URL:
+
+/api/customers
+
+Method	Endpoint	Authentication	Description
+GET	/api/customers	Admin	List registered customers
+POST	/api/customers	Authenticated	Create customer
+GET	/api/customers/{id}	Authenticated	Retrieve customer details
+Device APIs
+
+Base URL:
+
+/api/devices
+
+Method	Endpoint	Authentication	Description
+GET	/api/devices	Admin	List registered devices
+POST	/api/devices	Authenticated	Register a hardware device
+GET	/api/devices/customer/{id}	Authenticated	Retrieve customer's devices
+14. Technician Management APIs
+
+Base URL:
+
+/api/technicians
+
+Method	Endpoint	Authentication	Description
+GET	/api/technicians	Admin, Technician	List technicians and workloads
+GET	/api/technicians/active	Admin, Technician	List active technicians
+POST	/api/technicians	Admin	Add new technician
+PUT	/api/technicians/{id}	Admin	Update technician information
+PATCH	/api/technicians/{id}/status	Admin	Activate/deactivate technician
+DELETE	/api/technicians/{id}	Admin	Decommission technician
+
+The decommissioning operation validates that the technician has no open tickets before removal.
+
+15. Database Architecture
+
+OmniFix uses PostgreSQL 16 as the primary relational database.
+
+15.1 Users
+Field	Type	Constraint
+id	bigint	Primary Key
+username	varchar	Unique
+password	varchar	—
+full_name	varchar	—
+role	varchar	—
+enabled	boolean	—
+created_at	timestamp	—
+updated_at	timestamp	—
+15.2 Customers
+Field	Type	Constraint
+id	bigint	Primary Key
+first_name	varchar	—
+last_name	varchar	—
+email	varchar	Unique
+phone_number	varchar	—
+address	varchar	—
+created_at	timestamp	—
+updated_at	timestamp	—
+15.3 Devices
+Field	Type	Constraint
+id	bigint	Primary Key
+brand	varchar	—
+model	varchar	—
+serial_number	varchar	Unique
+device_type	varchar	—
+customer_id	bigint	Foreign Key
+created_at	timestamp	—
+updated_at	timestamp	—
+15.4 Technicians
+Field	Type	Constraint
+id	bigint	Primary Key
+first_name	varchar	—
+last_name	varchar	—
+email	varchar	Unique
+phone_number	varchar	—
+specialization	varchar	—
+is_active	boolean	—
+created_at	timestamp	—
+updated_at	timestamp	—
+15.5 Repair Tickets
+Field	Type	Constraint
+id	bigint	Primary Key
+ticket_number	varchar	Unique
+issue_description	text	—
+priority	varchar	—
+status	varchar	—
+estimated_completion_date	date	—
+customer_id	bigint	Foreign Key
+device_id	bigint	Foreign Key
+assigned_technician_id	bigint	Foreign Key
+created_at	timestamp	—
+updated_at	timestamp	—
+15.6 Repair Updates
+Field	Type	Constraint
+id	bigint	Primary Key
+repair_ticket_id	bigint	Foreign Key
+technician_id	bigint	Foreign Key
+previous_status	varchar	—
+new_status	varchar	—
+notes	text	—
+created_at	timestamp	—
+16. Database Relationships
+
+The database follows these major relationships:
+
+One Customer can own multiple Devices.
+One Customer can submit multiple Repair Tickets.
+One Device can have multiple Repair Tickets.
+One Technician can be assigned multiple Repair Tickets.
+One Repair Ticket can contain multiple Repair Updates.
+One Technician can create multiple Repair Updates.
+
+This relational structure provides traceability across customers, devices, technicians, repair tickets, and diagnostic history.
+
+17. Production Cloud Configuration
+17.1 Backend Web Service
+
+Service Name: repair-ticket-backend
+
+Environment: Docker
+
+The application uses a multi-stage Docker build based on:
+
+eclipse-temurin:26-jdk
+eclipse-temurin:26-jre
+
+Port:
+
+8082
+
+The application dynamically binds to the Render-provided PORT environment variable.
+
+JVM Configuration
+
+The application uses:
+
+-XX:+UseContainerSupport
+
+and
+
+-XX:MaxRAMPercentage=75.0
+
+to improve operation within container resource limits.
+
+18. Environment Variables
+
+For security, production secrets should not be placed directly into a project report.
+
+Use the following sanitized representation:
+
+PORT=8082
+
+DB_URL=<PRODUCTION_POSTGRESQL_CONNECTION_STRING>
+
+JWT_SECRET=<PRODUCTION_JWT_SECRET>
+
+JWT_EXPIRATION_MS=86400000
+
+ALLOWED_ORIGINS=https://repair-ticket-frontend.onrender.com,http://localhost:5173
+
+Security Note: The original document contains live database credentials and a JWT signing secret. Those values should be removed from the Word document and rotated if they have been exposed publicly.
+
+19. Frontend Static Site Configuration
+
+Service Name:
+
+repair-ticket-frontend
+
+Build Command
+npm install && npm run build
+Publish Directory
+dist
+API Configuration
+VITE_API_URL=https://repair-ticket-backend.onrender.com/api
+SPA Rewrite
+/* → /index.html
+Status: 200
+
+This ensures that React client-side routes work correctly when accessed directly.
+
+20. Local Development Setup
+20.1 Prerequisites
+
+The following software is required:
+
+Java JDK 21 or 26
+Node.js 18.x or higher
+PostgreSQL or Docker
+20.2 Start Database
+
+Run:
+
 docker compose up -d
-```
-*(Starts PostgreSQL on port `5432` with database `repair_ticket_db`)*
 
-### 2. Backend Service
-```bash
+This starts PostgreSQL on port:
+
+5432
+
+Database:
+
+repair_ticket_db
+20.3 Start Backend
+
+Navigate to the backend directory:
+
 cd repair-ticket-backend
+
+Run:
+
 .\mvnw.cmd spring-boot:run
-```
-*(Runs on [http://localhost:8082](http://localhost:8082))*
 
-### 3. Frontend Application
-```bash
+Backend runs on:
+
+http://localhost:8082
+20.4 Start Frontend
+
+Navigate to the frontend directory:
+
 cd repair-ticket-frontend
+
+Install dependencies:
+
 npm install
+
+Start the development server:
+
 npm run dev
-```
-*(Runs on [http://localhost:5173](http://localhost:5173))*
 
----
+Frontend runs on:
 
-## Project Repository Structure
+http://localhost:5173
 
-```
+21. Project Repository Structure
 repair-ticket/
-├── .gitignore                          # Root ignore file
-├── docker-compose.yml                  # Local PostgreSQL 16 container definition
-├── render.yaml                         # Render Infrastructure-as-Code Blueprint
-├── README.md                           # Master Project Documentation
-├── repair-ticket-backend/              # Spring Boot 4.1.1 Java REST API
-│   ├── Dockerfile                      # Multi-stage container build for Render
-│   ├── .dockerignore                   # Docker build ignore rules
-│   ├── pom.xml                         # Maven dependencies & build plugins
+│
+├── .gitignore
+│   └── Root ignore configuration
+│
+├── docker-compose.yml
+│   └── Local PostgreSQL 16 container definition
+│
+├── render.yaml
+│   └── Render Infrastructure-as-Code configuration
+│
+├── README.md
+│   └── Master project documentation
+│
+├── repair-ticket-backend/
+│   ├── Dockerfile
+│   │   └── Multi-stage Docker build
+│   │
+│   ├── .dockerignore
+│   │   └── Docker build ignore rules
+│   │
+│   ├── pom.xml
+│   │   └── Maven dependencies and plugins
+│   │
 │   └── src/main/
 │       ├── java/com/bharath/repairticket/
-│       │   ├── config/                 # SecurityConfig, DatabaseConfig, DataInitializer
-│       │   ├── controller/             # REST API Controllers
-│       │   ├── dto/                    # Request/Response Data Transfer Objects
-│       │   ├── entity/                 # JPA Entities (User, Ticket, Customer, Device, Tech)
-│       │   ├── exception/              # Global Exception Handling & Error Responses
-│       │   ├── repository/             # Spring Data JPA Repositories
-│       │   ├── security/               # JWT Token Provider, Auth Filter & Entry Points
-│       │   └── service/                # Business logic, FSM validation & services
+│       │
+│       ├── config/
+│       │   └── SecurityConfig, DatabaseConfig,
+│       │       DataInitializer
+│       │
+│       ├── controller/
+│       │   └── REST API Controllers
+│       │
+│       ├── dto/
+│       │   └── Request/Response DTOs
+│       │
+│       ├── entity/
+│       │   └── JPA Entities
+│       │
+│       ├── exception/
+│       │   └── Global Exception Handling
+│       │
+│       ├── repository/
+│       │   └── Spring Data JPA Repositories
+│       │
+│       ├── security/
+│       │   └── JWT Token Provider and Authentication Filter
+│       │
+│       └── service/
+│           └── Business Logic and FSM Validation
+│
 │       └── resources/
-│           └── application.properties  # HikariCP, JPA, JWT, and Port configuration
-└── repair-ticket-frontend/             # React 19 + Vite 8 SPA
-    ├── package.json                    # Dependencies & build scripts
-    ├── vite.config.js                  # Vite bundler & local dev proxy configuration
-    ├── index.html                      # HTML5 Entry Point
+│           └── application.properties
+│
+└── repair-ticket-frontend/
+    ├── package.json
+    │   └── Dependencies and build scripts
+    │
+    ├── vite.config.js
+    │   └── Vite configuration
+    │
+    ├── index.html
+    │   └── HTML5 entry point
+    │
     └── src/
-        ├── components/                 # Portal views (Customer, Technician, Admin, Tracker)
-        │   ├── common/                 # Reusable UI components (StatCards, Badges, Modals)
-        │   ├── layout/                 # Topbar, Sidebar, Global Command Palette (Cmd+K)
-        │   └── tickets/                # Kanban board, TicketDrawer, WorkspaceModal, Wizard
-        ├── context/                    # AuthContext (JWT session), ToastContext
-        ├── pages/                      # Role-specific login pages (Customer, Tech, Admin)
+        ├── components/
+        │   ├── common/
+        │   │   └── Reusable UI components
+        │   │
+        │   ├── layout/
+        │   │   └── Topbar, Sidebar, Command Palette
+        │   │
+        │   └── tickets/
+        │       └── Kanban Board, Ticket Drawer,
+        │           Workspace Modal, Wizard
+        │
+        ├── context/
+        │   ├── AuthContext
+        │   └── ToastContext
+        │
+        ├── pages/
+        │   └── Role-specific login pages
+        │
         └── services/
-            └── api.js                  # Centralized HTTP Client with dynamic API URL
-```
+            └── api.js
+                └── Centralized HTTP Client
 
----
+22. Security Architecture
 
-## License
+OmniFix implements a stateless JWT-based authentication architecture.
 
-This project is licensed under the [MIT License](LICENSE).
+Security Components
+Spring Security
+JWT Authentication
+HMAC-SHA256 signing
+Stateless sessions
+Role-based access control
+CORS configuration
+Bearer token authentication
+Public ticket tracking
+Privacy masking
+Authentication Flow
+
+User Login
+
+↓
+
+Spring Security Authentication
+
+↓
+
+JWT Token Generation
+
+↓
+
+Client Stores Authentication Token
+
+↓
+
+Bearer Token Sent with API Requests
+
+↓
+
+JWT Validation
+
+↓
+
+Role-Based Authorization
+
+↓
+
+Protected REST API
+
+23. Key Technical Highlights
+
+The major technical aspects demonstrated by OmniFix include:
+
+Backend
+Spring Boot
+Spring REST APIs
+Spring Security
+JWT Authentication
+Role-Based Authorization
+Spring Data JPA
+Hibernate
+DTO-based API design
+Service Layer Architecture
+Repository Pattern
+Global Exception Handling
+FSM-based business validation
+Frontend
+React 19
+Vite
+Component-based architecture
+Context API
+Responsive dashboards
+Kanban interface
+Modal and drawer components
+Role-specific interfaces
+Client-side routing
+Database
+PostgreSQL 16
+Relational data modeling
+Primary Keys
+Foreign Keys
+Unique constraints
+Entity relationships
+Audit history
+DevOps & Cloud
+Docker
+Multi-stage Docker builds
+Render deployment
+Render PostgreSQL
+Environment-based configuration
+Production frontend/backend separation
+24. End-to-End Workflow
+
+The complete OmniFix workflow can be summarized as follows:
+
+Step 1 – Customer Registration
+
+The customer creates an account or logs into the platform.
+
+Step 2 – Hardware Registration
+
+The customer registers a laptop, smartphone, tablet, desktop, or other supported device.
+
+Step 3 – Repair Intake
+
+The customer creates a repair ticket and provides the hardware issue.
+
+Step 4 – SLA Selection
+
+The customer selects the expected repair turnaround.
+
+Step 5 – Ticket Creation
+
+The system creates a unique repair ticket number.
+
+Step 6 – Administrative Triage
+
+The administrator reviews incoming repair requests.
+
+Step 7 – Technician Assignment
+
+The ticket is assigned to an available workshop specialist.
+
+Step 8 – Bench Diagnosis
+
+The technician begins diagnostic work.
+
+Step 9 – Repair
+
+The technician performs the required repair.
+
+Step 10 – Diagnostic Updates
+
+The technician records repair progress and technical notes.
+
+Step 11 – Repair Completion
+
+The technician marks the repair as completed.
+
+Step 12 – QA Verification
+
+The completed device undergoes quality verification.
+
+Step 13 – Customer Pickup
+
+The device becomes ready for customer collection.
+
+Step 14 – Ticket Closure
+
+The administrator closes the repair ticket.
+
+25. Project Conclusion
+
+OmniFix provides a complete digital workflow for managing hardware repair operations.
+
+The platform integrates:
+
+Customer self-service
+Hardware asset management
+Repair ticket management
+Technician workload management
+Diagnostic tracking
+FSM-based workflow validation
+Administrative monitoring
+Public ticket tracking
+JWT-based security
+PostgreSQL persistence
+Docker containerization
+Cloud deployment
+
+By combining these components into a single platform, OmniFix provides an end-to-end solution for managing hardware service operations from customer intake to final handover.
+
+26. License
+
+This project is licensed under the MIT License
